@@ -36,6 +36,26 @@ Router juga dikonfigurasi sebagai firewall, NAT Gateway, dan pengendali komunika
 ```
 
 ---
+# Persiapan Virtual Machine
+
+Sebelum melakukan import konfigurasi MikroTik, pastikan topologi virtual telah dikonfigurasi sesuai dengan implementasi proyek.
+
+Konfigurasi ini dibuat menggunakan **Oracle VirtualBox 7.x**.
+
+---
+
+# Konfigurasi Network Adapter MikroTik CHR
+
+Router MikroTik CHR menggunakan **4 Network Adapter**.
+
+| Adapter | Mode | Nama Network | Interface MikroTik | Fungsi |
+|----------|------|--------------|--------------------|--------|
+| Adapter 1 | NAT | - | WAN | Koneksi Internet |
+| Adapter 2 | Internal Network | DMZ | DMZ | Jaringan Server Publik |
+| Adapter 3 | Internal Network | LAN | LAN | Jaringan Internal |
+| Adapter 4 | Host-Only Adapter | VirtualBox Host-Only Ethernet Adapter | MGMT | Jaringan Management (Winbox) |
+
+---
 
 # 4.3 Konfigurasi Interface
 

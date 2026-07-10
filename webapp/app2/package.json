@@ -1,0 +1,19 @@
+{
+  "name": "vdkj-app2-employee-portal",
+  "version": "1.0.0",
+  "description": "Employee Portal - VDKJ Web Application 2",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "method-override": "^3.0.0",
+    "mysql2": "^3.9.7"
+  }
+}

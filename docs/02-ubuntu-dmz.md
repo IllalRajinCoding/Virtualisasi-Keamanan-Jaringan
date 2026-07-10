@@ -435,20 +435,47 @@ sudo resize2fs /dev/sda2
 
 ---
 
-# 5.16 Dokumentasi Screenshot
+# 5.16 Lampiran Screenshot
 
-Dokumentasi yang disarankan untuk dilampirkan pada laporan:
+## Konfigurasi Adapter VirtualBox
 
-- Konfigurasi Adapter VirtualBox
-- File Netplan
-- Output `ip a`
-- Output `ip route`
-- Output `lsblk`
-- Output `df -h`
-- Output `growpart`
-- Output `resize2fs`
-- Output `ping 7.7.7.1`
-- Output `ping google.com`
+![Konfigurasi Adapter VirtualBox](../img/ubuntu-dmz/adapter.png)
+
+## File Netplan
+
+![File Netplan](../img/ubuntu-dmz/config-netplan.png)
+
+## Output `ip a`
+
+![Output ip a](../img/ubuntu-dmz/ip-a.png)
+
+## Output `ip route`
+
+![Output ip route](../img/ubuntu-dmz/ip-route.png)
+
+## Output `lsblk`
+
+![Output lsblk](../img/ubuntu-dmz/lslbk.png)
+
+## Output `df -h`
+
+![Output df -h](../img/ubuntu-dmz/df-h.png)
+
+## Output `growpart`
+
+![Output growpart](../img/ubuntu-dmz/growparts.png)
+
+## Output `resize2fs`
+
+![Output resize2fs](../img/ubuntu-dmz/resize2fs.png)
+
+## Output `ping 7.7.7.1`
+
+![Output ping 7.7.7.1](../img/ubuntu-dmz/ping-7.7.7.1.png)
+
+## Output `ping google.com`
+
+![Output ping google.com](../img/ubuntu-dmz/ping-google.png)
 
 ---
 

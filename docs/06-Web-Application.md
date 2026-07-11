@@ -49,5 +49,4 @@ docker compose ps
 -   Healthcheck berjalan.
 
 ## Screenshot
-
-> Tambahkan screenshot Docker Compose, App1, dan App2.
+![hasil docker compose up](../img/web-app/docker-compose-up.png)

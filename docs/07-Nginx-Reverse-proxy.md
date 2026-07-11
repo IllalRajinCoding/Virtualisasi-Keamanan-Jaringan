@@ -3,94 +3,103 @@
 
 ## 9.1 Pendahuluan
 
-Pada implementasi ini digunakan **Nginx** sebagai **Reverse Proxy** untuk mengarahkan seluruh request HTTP yang masuk ke aplikasi yang berjalan di dalam Docker Container.
+Pada tahap ini dilakukan implementasi **Nginx** sebagai **Reverse Proxy** pada Ubuntu Server yang berada di segmen **DMZ**. Nginx bertugas menerima seluruh permintaan HTTP dari client, kemudian meneruskannya ke aplikasi yang berjalan di dalam Docker Container.
 
-Arsitektur yang digunakan terdiri dari dua aplikasi berbeda:
+Implementasi ini menggunakan dua aplikasi:
 
-- **APP1** menggunakan **Node.js Express**
-- **APP2** menggunakan **Python Flask**
+- **APP1** : Node.js Express (Port 3000)
+- **APP2** : Python Flask (Port 3001)
 
-Dengan menggunakan Reverse Proxy, pengguna hanya mengakses satu web server (Nginx), sedangkan Nginx meneruskan request ke container yang sesuai.
+Berbeda dengan implementasi produksi, lingkungan praktikum menggunakan **VirtualBox NAT** dengan **Port Forwarding**. Oleh karena itu Windows Host **tidak dapat mengakses alamat IP internal 7.7.7.2 secara langsung**.
+
+Seluruh akses dari Windows dilakukan melalui:
+
+- http://localhost:8080/
+- http://localhost:8080/employee/
+
+VirtualBox meneruskan koneksi:
+
+Host `localhost:8080` → Guest `Port 80 (Nginx)`.
 
 ---
 
 # 9.2 Tujuan
 
-Implementasi Reverse Proxy bertujuan untuk:
-
-- Menyediakan satu pintu akses menuju seluruh aplikasi.
-- Menyembunyikan port internal container.
+- Menyediakan satu pintu akses ke seluruh aplikasi.
+- Menyembunyikan port internal aplikasi.
 - Mempermudah pengelolaan layanan.
-- Menambahkan security headers.
-- Mencatat seluruh request melalui access log.
+- Menambahkan HTTP Security Headers.
+- Menyediakan Access Log dan Error Log.
 
 ---
 
-# 9.3 Arsitektur Reverse Proxy
+# 9.3 Arsitektur
 
-```
-                 Internet
-                     │
-              MikroTik Router
-                     │
-              Ubuntu Server (DMZ)
-                     │
-                 Nginx :80
-          ┌──────────┴──────────┐
-          │                     │
-          ▼                     ▼
-   APP1 (Node.js)        APP2 (Flask)
-      Port 3000             Port 3001
+```text
+Windows Host
+      │
+http://localhost:8080
+      │
+VirtualBox NAT Port Forwarding
+Host 8080 → Guest 80
+      │
+Ubuntu Server DMZ
+      │
+Nginx :80
+├───────────────┐
+│               │
+▼               ▼
+APP1            APP2
+Node.js         Flask
+3000            3001
 ```
 
-Semua request HTTP akan diterima oleh Nginx terlebih dahulu sebelum diteruskan ke aplikasi.
+Semua request dari Windows diterima oleh Nginx, kemudian diteruskan berdasarkan URL.
 
 ---
 
 # 9.4 Instalasi Nginx
 
-Update repository.
-
 ```bash
 sudo apt update
-```
-
-Install Nginx.
-
-```bash
 sudo apt install nginx -y
-```
-
-Menjalankan service.
-
-```bash
 sudo systemctl enable nginx
 sudo systemctl start nginx
-```
-
-Verifikasi.
-
-```bash
 sudo systemctl status nginx
 ```
 
 Status yang diharapkan:
 
-```
+```text
 Active: active (running)
 ```
 
 ---
 
-# 9.5 Konfigurasi Reverse Proxy
+# 9.5 Konfigurasi VirtualBox Port Forwarding
 
-Membuat virtual host baru.
+Karena Ubuntu menggunakan Adapter NAT, dibuat aturan Port Forwarding:
 
-```bash
-sudo nano /etc/nginx/sites-available/vdkj
+| Protocol | Host IP | Host Port | Guest IP | Guest Port |
+|-----------|---------|----------:|----------|-----------:|
+| TCP | 127.0.0.1 | 8080 | - | 80 |
+
+Dengan konfigurasi tersebut:
+
+- `http://localhost:8080/` → Nginx → APP1
+- `http://localhost:8080/employee/` → Nginx → APP2
+
+Catatan: IP `7.7.7.2` tidak dapat diakses langsung dari Windows karena merupakan alamat internal VM.
+
+---
+
+# 9.6 Konfigurasi Reverse Proxy
+
+File:
+
+```text
+/etc/nginx/sites-available/vdkj
 ```
-
-Isi konfigurasi:
 
 ```nginx
 server {
@@ -99,171 +108,86 @@ server {
     server_name _;
 
     access_log /var/log/nginx/vdkj_access.log;
-    error_log  /var/log/nginx/vdkj_error.log;
-
-    ####################################################
-    ## APP1
-    ## http://7.7.7.2/
-    ####################################################
+    error_log /var/log/nginx/vdkj_error.log;
 
     location / {
-
         proxy_pass http://127.0.0.1:3000;
-
         proxy_http_version 1.1;
-
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-
     }
-
-    ####################################################
-    ## APP2
-    ## http://7.7.7.2/employee/
-    ####################################################
 
     location /employee/ {
-
         proxy_pass http://127.0.0.1:3001/;
-
         proxy_http_version 1.1;
-
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-
     }
-
-    ####################################################
-    ## Security Headers
-    ####################################################
 
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
 }
 ```
 
----
-
-# 9.6 Mengaktifkan Virtual Host
-
-Membuat symbolic link.
+Aktifkan:
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/vdkj /etc/nginx/sites-enabled/
-```
-
-Menghapus konfigurasi default.
-
-```bash
 sudo rm /etc/nginx/sites-enabled/default
-```
-
----
-
-# 9.7 Validasi Konfigurasi
-
-Memastikan konfigurasi tidak memiliki kesalahan.
-
-```bash
 sudo nginx -t
-```
-
-Hasil yang diharapkan:
-
-```
-syntax is ok
-test is successful
-```
-
----
-
-# 9.8 Restart Service
-
-```bash
 sudo systemctl restart nginx
 ```
 
-Verifikasi.
+---
 
-```bash
-sudo systemctl status nginx
+# 9.7 Pengujian
+
+APP1:
+
+```text
+http://localhost:8080/
 ```
+
+Expected:
+
+- Halaman APP1 tampil.
+- Database Connected.
+
+APP2:
+
+```text
+http://localhost:8080/employee/
+```
+
+Expected:
+
+- Halaman Employee Portal tampil.
+- Database Connected.
 
 ---
 
-# 9.9 Pengujian Reverse Proxy
+# 9.8 Monitoring
 
-## APP1
-
-Mengakses halaman utama.
-
-```bash
-curl http://localhost
-```
-
-Hasil:
-
-```json
-{
-    "application":"APP1",
-    "framework":"Node.js Express",
-    "status":"Running",
-    "database":"Connected"
-}
-```
-
----
-
-## APP2
-
-Mengakses Employee Portal.
-
-```bash
-curl http://localhost/employee/
-```
-
-Halaman Flask berhasil ditampilkan.
-
----
-
-# 9.10 Access Log
-
-Melihat seluruh request.
+Access Log
 
 ```bash
 sudo tail -f /var/log/nginx/vdkj_access.log
 ```
 
-Contoh:
-
-```
-GET /
-GET /employee/
-```
-
----
-
-# 9.11 Error Log
-
-Melihat error.
+Error Log
 
 ```bash
 sudo tail -f /var/log/nginx/vdkj_error.log
 ```
 
-Digunakan untuk troubleshooting apabila Reverse Proxy gagal menghubungkan aplikasi.
-
 ---
 
-# 9.12 Security Headers
-
-Untuk meningkatkan keamanan web server ditambahkan beberapa HTTP Security Header.
+# 9.9 Security Headers
 
 ```nginx
 add_header X-Frame-Options "SAMEORIGIN" always;
@@ -271,17 +195,17 @@ add_header X-Content-Type-Options "nosniff" always;
 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 ```
 
-Fungsi masing-masing:
+Fungsi:
 
 | Header | Fungsi |
-|---------|--------|
+|--------|--------|
 | X-Frame-Options | Mencegah Clickjacking |
 | X-Content-Type-Options | Mencegah MIME Sniffing |
 | Referrer-Policy | Membatasi informasi Referrer |
 
 ---
 
-# 9.13 Hasil Implementasi
+# 9.10 Hasil Implementasi
 
 | Komponen | Status |
 |----------|--------|
@@ -291,24 +215,124 @@ Fungsi masing-masing:
 | Access Log | ✅ |
 | Error Log | ✅ |
 | Security Headers | ✅ |
+| Port Forwarding | ✅ |
 
 ---
 
-# 9.14 Dokumentasi Screenshot
+# 9.11 Troubleshooting
 
-Tambahkan screenshot berikut:
+## localhost:8080 tidak bisa diakses
 
-- Instalasi Nginx
-- Status service Nginx
-- File konfigurasi `vdkj`
-- Hasil `nginx -t`
-- APP1 melalui Reverse Proxy
-- APP2 melalui Reverse Proxy
-- Access Log
-- Error Log
+**Penyebab:**
+- Port Forwarding belum dibuat.
+- Nginx belum berjalan.
+
+**Solusi:**
+
+```bash
+sudo systemctl status nginx
+sudo systemctl restart nginx
+```
+
+Periksa aturan Port Forwarding VirtualBox.
 
 ---
 
-# Kesimpulan
+## 7.7.7.2 tidak dapat diakses dari Windows
 
-Implementasi Nginx Reverse Proxy berhasil dilakukan pada Ubuntu Server DMZ. Seluruh request HTTP diteruskan ke aplikasi yang sesuai berdasarkan URL yang diakses. APP1 (Node.js) dapat diakses melalui root path (`/`), sedangkan APP2 (Flask) dapat diakses melalui path `/employee/`. Selain itu, Nginx juga berhasil menerapkan security headers serta melakukan pencatatan aktivitas pengguna melalui access log dan error log sehingga memudahkan proses monitoring dan troubleshooting.
+Normal. VM menggunakan NAT sehingga alamat internal tidak dapat diakses langsung.
+
+Gunakan:
+
+```text
+http://localhost:8080/
+```
+
+---
+
+## 502 Bad Gateway
+
+Penyebab:
+
+- APP1/APP2 belum berjalan.
+- Container berhenti.
+
+Cek:
+
+```bash
+docker ps
+docker compose logs
+```
+
+---
+
+## nginx -t gagal
+
+Periksa syntax konfigurasi:
+
+```bash
+sudo nginx -t
+```
+
+---
+
+## APP1 dapat diakses tetapi APP2 gagal
+
+Pastikan:
+
+```bash
+docker ps
+curl http://127.0.0.1:3001
+```
+
+Jika gagal, periksa container Flask.
+
+---
+
+## Access Log kosong
+
+Pastikan file:
+
+```text
+/var/log/nginx/vdkj_access.log
+```
+
+memiliki permission yang benar dan request benar-benar melewati Nginx.
+
+---
+
+# 9.12 Screenshot
+
+## Status Nginx
+
+![Status Nginx](../img/nginx/status.png)
+
+## Hasil nginx -t
+
+![Hasil nginx -t](../img/nginx/nginx-t.png)
+
+## VirtualBox Port Forwarding
+
+![VirtualBox Port Forwarding](../img/nginx/port-forwarding.png)
+
+## APP1 melalui localhost:8080
+
+![APP1](../img/nginx/web-app1.png)
+
+## APP2 melalui localhost:8080/employee/
+
+![APP2](../img/nginx/web-app2.png)
+
+## Access Log
+
+![Access Log](../img/nginx/acces-log.png)
+
+## Error Log
+
+![Error Log](../img/nginx/error-log.png)
+
+---
+
+# 9.13 Kesimpulan
+
+Implementasi Nginx Reverse Proxy berhasil dilakukan pada Ubuntu Server DMZ. Seluruh request dari Windows Host diterima melalui mekanisme VirtualBox NAT Port Forwarding pada `localhost:8080`, kemudian diteruskan ke Nginx yang berjalan pada port 80. Nginx berhasil mengarahkan request ke APP1 maupun APP2 sesuai URL yang diakses, menyediakan Access Log dan Error Log, serta menambahkan HTTP Security Headers untuk meningkatkan keamanan layanan.

@@ -1,0 +1,45 @@
+server {
+
+    listen 80;
+    server_name _;
+
+    access_log /var/log/nginx/vdkj_access.log;
+    error_log  /var/log/nginx/vdkj_error.log;
+
+    # =========================
+    # APP1
+    # http://7.7.7.2/
+    # =========================
+
+    location / {
+
+        proxy_pass http://127.0.0.1:3000;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+    }
+
+    # =========================
+    # APP2
+    # http://7.7.7.2/employee
+    # =========================
+
+    location /employee/ {
+
+        proxy_pass http://127.0.0.1:3001/;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+    }
+
+}

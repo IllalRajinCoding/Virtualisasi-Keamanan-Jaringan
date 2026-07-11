@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Employee Portal — Manajemen Karyawan VDKJ App2">
+  <title>Karyawan — Employee Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ── Sidebar ────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">👥</div>
+      <div>
+        <span class="brand-name">Employee Portal</span>
+        <span class="brand-tag">VDKJ · App 2</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/employees"     class="nav-link active"><span class="nav-icon">👤</span> Daftar Karyawan</a>
+      <a href="/employees/add" class="nav-link">       <span class="nav-icon">➕</span> Tambah Karyawan</a>
+      <a href="/health"        class="nav-link" target="_blank"><span class="nav-icon">🩺</span> Health Check</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="server-badge">
+        <span class="dot green"></span>
+        <span>Server Online</span>
+      </div>
+      <small>7.7.7.2:3001 · app2_db</small>
+    </div>
+  </aside>
+
+  <!-- ── Main Content ───────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">👥 Daftar Karyawan</h1>
+        <p class="page-subtitle">SELECT * FROM app2_db.employees</p>
+      </div>
+      <a href="/employees/add" class="btn btn-primary">+ Tambah Karyawan</a>
+    </header>
+
+    <!-- Flash Messages -->
+    <% if (flash === 'added')   { %><div class="alert alert-success">✅ Karyawan berhasil ditambahkan.</div><% } %>
+    <% if (flash === 'updated') { %><div class="alert alert-success">✏️ Data karyawan berhasil diperbarui.</div><% } %>
+    <% if (flash === 'deleted') { %><div class="alert alert-warning">🗑️ Karyawan berhasil dihapus.</div><% } %>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👤</div>
+        <div>
+          <span class="stat-value"><%= totalEmployees %></span>
+          <span class="stat-label">Total Karyawan</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏢</div>
+        <div>
+          <span class="stat-value"><%= totalDepts %></span>
+          <span class="stat-label">Departemen</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🗄️</div>
+        <div>
+          <span class="stat-value" style="font-size:1rem;font-family:monospace">app2_db</span>
+          <span class="stat-label">Database Aktif</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card">
+      <div class="card-header">
+        <span>Tabel Karyawan</span>
+        <span class="badge"><%= totalEmployees %> record</span>
+      </div>
+      <div class="table-wrapper">
+        <% if (employees.length === 0) { %>
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>Belum ada karyawan. <a href="/employees/add">Tambah sekarang →</a></p>
+          </div>
+        <% } else { %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nama Lengkap</th>
+              <th>Departemen</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% employees.forEach(emp => { %>
+            <tr>
+              <td><span class="id-badge">#<%= emp.id %></span></td>
+              <td><span class="emp-name"><%= emp.fullname %></span></td>
+              <td><span class="dept-badge"><%= emp.department %></span></td>
+              <td>
+                <div class="action-group">
+                  <a href="/employees/<%= emp.id %>/edit" class="btn btn-sm btn-edit">✏️ Edit</a>
+                  <form method="POST" action="/employees/<%= emp.id %>?_method=DELETE"
+                        onsubmit="return confirm('Hapus karyawan \'<%= emp.fullname %>\'?')">
+                    <button type="submit" class="btn btn-sm btn-delete">🗑️ Hapus</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

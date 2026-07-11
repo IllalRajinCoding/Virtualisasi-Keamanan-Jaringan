@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= pageTitle %> — Product Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🛍️</div>
+      <div>
+        <span class="brand-name">Product Store</span>
+        <span class="brand-tag">VDKJ · App 1</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/products"     class="nav-link"><span class="nav-icon">📦</span> Daftar Produk</a>
+      <a href="/products/add" class="nav-link active"><span class="nav-icon">➕</span> Tambah Produk</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="server-badge">
+        <span class="dot green"></span>
+        <span>Server Online</span>
+      </div>
+      <small>7.7.7.2:3000 · app1_db</small>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 class="page-title"><%= pageTitle %></h1>
+        <p class="page-subtitle"><%= product ? 'UPDATE products SET ... WHERE id=' + product.id : 'INSERT INTO products ...' %></p>
+      </div>
+      <a href="/products" class="btn btn-secondary">← Kembali</a>
+    </header>
+
+    <% if (error) { %>
+      <div class="alert alert-danger">⚠️ <%= error %></div>
+    <% } %>
+
+    <div class="form-card">
+      <form method="POST" action="<%= formAction %>">
+        <div class="form-group">
+          <label for="name" class="form-label">Nama Produk</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            class="form-input"
+            placeholder="Contoh: Keyboard Mechanical RGB"
+            value="<%= product ? product.name : '' %>"
+            required
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="price" class="form-label">Harga (Rupiah)</label>
+          <input
+            type="number"
+            id="price"
+            name="price"
+            class="form-input"
+            placeholder="Contoh: 850000"
+            value="<%= product ? product.price : '' %>"
+            min="0"
+            step="1"
+            required
+          >
+          <small class="form-hint">Masukkan angka tanpa titik atau koma. Contoh: <strong>850000</strong></small>
+        </div>
+
+        <div class="form-actions">
+          <a href="/products" class="btn btn-secondary">Batal</a>
+          <button type="submit" class="btn btn-primary">
+            <%= product ? '💾 Simpan Perubahan' : '➕ Tambah Produk' %>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+</body>
+</html>

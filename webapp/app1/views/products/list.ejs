@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Product Store — Manajemen Produk VDKJ App1">
+  <title>Produk — Product Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ── Sidebar ────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🛍️</div>
+      <div>
+        <span class="brand-name">Product Store</span>
+        <span class="brand-tag">VDKJ · App 1</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/products"     class="nav-link active"><span class="nav-icon">📦</span> Daftar Produk</a>
+      <a href="/products/add" class="nav-link">       <span class="nav-icon">➕</span> Tambah Produk</a>
+      <a href="/health"       class="nav-link" target="_blank"><span class="nav-icon">🩺</span> Health Check</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="server-badge">
+        <span class="dot green"></span>
+        <span>Server Online</span>
+      </div>
+      <small>7.7.7.2:3000 · app1_db</small>
+    </div>
+  </aside>
+
+  <!-- ── Main Content ───────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">📦 Daftar Produk</h1>
+        <p class="page-subtitle">SELECT * FROM app1_db.products</p>
+      </div>
+      <a href="/products/add" class="btn btn-primary">+ Tambah Produk</a>
+    </header>
+
+    <!-- Flash Messages -->
+    <% if (flash === 'added')   { %><div class="alert alert-success">✅ Produk berhasil ditambahkan.</div><% } %>
+    <% if (flash === 'updated') { %><div class="alert alert-success">✏️ Produk berhasil diperbarui.</div><% } %>
+    <% if (flash === 'deleted') { %><div class="alert alert-warning">🗑️ Produk berhasil dihapus.</div><% } %>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div>
+          <span class="stat-value"><%= totalProducts %></span>
+          <span class="stat-label">Total Produk</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div>
+          <span class="stat-value" style="font-size:1.05rem"><%= totalValue %></span>
+          <span class="stat-label">Total Nilai Stok</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🗄️</div>
+        <div>
+          <span class="stat-value" style="font-size:1rem;font-family:monospace">app1_db</span>
+          <span class="stat-label">Database Aktif</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card">
+      <div class="card-header">
+        <span>Tabel Produk</span>
+        <span class="badge"><%= totalProducts %> record</span>
+      </div>
+      <div class="table-wrapper">
+        <% if (products.length === 0) { %>
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>Belum ada produk. <a href="/products/add">Tambah sekarang →</a></p>
+          </div>
+        <% } else { %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nama Produk</th>
+              <th>Harga</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% products.forEach(p => { %>
+            <tr>
+              <td><span class="id-badge">#<%= p.id %></span></td>
+              <td><span class="product-name"><%= p.name %></span></td>
+              <td><span class="price-tag"><%= formatRupiah(p.price) %></span></td>
+              <td>
+                <div class="action-group">
+                  <a href="/products/<%= p.id %>/edit" class="btn btn-sm btn-edit">✏️ Edit</a>
+                  <form method="POST" action="/products/<%= p.id %>?_method=DELETE"
+                        onsubmit="return confirm('Hapus produk \'<%= p.name %>\'?')">
+                    <button type="submit" class="btn btn-sm btn-delete">🗑️ Hapus</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+# ============================================================
+# VDKJ Web App — .gitignore
+# ============================================================
+
+# Environment variables (JANGAN PERNAH di-push!)
+.env
+*.env
+!.env.example
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Docker (jangan ignore .dockerignore — file ini perlu ada di repo)

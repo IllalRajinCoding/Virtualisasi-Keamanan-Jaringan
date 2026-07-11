@@ -1,73 +1,120 @@
-version: '3.8'
-
-# ============================================================
-# VDKJ Web Application - Docker Compose
-# App1: Product Store  → port 3000 (app1_db)
-# App2: Employee Portal → port 3001 (app2_db)
-# DB Host: 192.168.56.10 (MySQL di LAN)
-# ============================================================
+version: "3.8"
 
 services:
 
-  # ──────────────────────────────────────────────
-  # App 1 — Product Store
-  # ──────────────────────────────────────────────
+  # ==========================================================
+  # Reverse Proxy (Nginx)
+  # ==========================================================
+  nginx:
+    image: nginx:alpine
+    container_name: vdkj_nginx
+
+    restart: unless-stopped
+
+    depends_on:
+      - app1
+      - app2
+
+    ports:
+      - "80:80"
+      - "8080:8080"
+
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+
+    networks:
+      - webnet
+
+  # ==========================================================
+  # Product Store
+  # ==========================================================
   app1:
     build:
       context: ./app1
       dockerfile: Dockerfile
+
     container_name: vdkj_app1
+
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+
+    expose:
+      - "3000"
+
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - DB_HOST=${DB_HOST:-192.168.56.10}
-      - DB_PORT=${DB_PORT:-3306}
-      - DB_NAME=app1_db
-      - DB_USER=app1_user
-      - DB_PASS=${DB_PASS_APP1}
-    networks:
-      - webnet
+      NODE_ENV: production
+      PORT: 3000
+
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: app1_db
+      DB_USER: app1_user
+      DB_PASS: ${DB_PASS_APP1}
+
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/health"
+        ]
       interval: 30s
       timeout: 10s
-      start_period: 15s
       retries: 3
+      start_period: 15s
 
-  # ──────────────────────────────────────────────
-  # App 2 — Employee Portal
-  # ──────────────────────────────────────────────
+    networks:
+      - webnet
+
+  # ==========================================================
+  # Employee Portal
+  # ==========================================================
   app2:
     build:
       context: ./app2
       dockerfile: Dockerfile
+
     container_name: vdkj_app2
+
     restart: unless-stopped
-    ports:
-      - "3001:3001"
+
+    expose:
+      - "3001"
+
     environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - DB_HOST=${DB_HOST:-192.168.56.10}
-      - DB_PORT=${DB_PORT:-3306}
-      - DB_NAME=app2_db
-      - DB_USER=app2_user
-      - DB_PASS=${DB_PASS_APP2}
-    networks:
-      - webnet
+      NODE_ENV: production
+      PORT: 3001
+
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: app2_db
+      DB_USER: app2_user
+      DB_PASS: ${DB_PASS_APP2}
+
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3001/health"
+        ]
       interval: 30s
       timeout: 10s
-      start_period: 15s
       retries: 3
+      start_period: 15s
 
-# ──────────────────────────────────────────────
-# Shared Network
-# ──────────────────────────────────────────────
+    networks:
+      - webnet
+
+# ==========================================================
+# Docker Network
+# ==========================================================
 networks:
   webnet:
     driver: bridge

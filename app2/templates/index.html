@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Employee Portal</title>
+
+<style>
+
+body{
+
+font-family:Arial;
+
+margin:40px;
+
+}
+
+table{
+
+border-collapse:collapse;
+
+width:600px;
+
+}
+
+td,th{
+
+border:1px solid #ddd;
+
+padding:10px;
+
+}
+
+th{
+
+background:#2ecc71;
+
+color:white;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Employee Portal</h1>
+
+<p><strong>Framework :</strong> Python Flask</p>
+
+<p><strong>Database :</strong> {{ status }}</p>
+
+{% if error %}
+<p style="color:red">{{ error }}</p>
+{% endif %}
+
+<table>
+
+<tr>
+
+<th>ID</th>
+
+<th>Name</th>
+
+<th>Department</th>
+
+</tr>
+
+{% for employee in employees %}
+
+<tr>
+
+<td>{{ employee.id }}</td>
+
+<td>{{ employee.fullname }}</td>
+
+<td>{{ employee.department }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+
+</html>
